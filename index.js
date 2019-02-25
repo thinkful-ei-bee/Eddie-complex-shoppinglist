@@ -22,7 +22,7 @@ const STORE = {
 
 function generateItemHTML(item){
   return `
-  <li data-item-id="${item.id}"> <span class="shopping-item ${item.checked ? 'shopping-item__checked' : ''}">${item.name}</span> <div class="shopping-item-controls"> <button class="shopping-item-toggle js-item-toggle"> <span class="button-label">check</span> </button> <button class="shopping-item-delete js-item-delete"> <span class="button-label">delete</span> </button> </div> </li>
+  <li data-item-id="${item.id}"> <button class="shopping-item ${item.checked ? 'shopping-item__checked' : ''}">${item.name}</button> <div class="shopping-item-controls"> <button class="shopping-item-toggle js-item-toggle"> <span class="button-label">check</span> </button> <button class="shopping-item-delete js-item-delete"> <span class="button-label">delete</span> </button> </div> </li>
   `;
 }
 
@@ -65,7 +65,7 @@ function deleteItemFromList(id){
   // this function will delete an item from the given id
   const index = STORE.items.findIndex(item => item.id === id);
   if (index === -1) return;
-  STORE.splice(index,1);
+  STORE.items.splice(index,1);
 }
 
 function assignSearchWord(word){
@@ -74,11 +74,26 @@ function assignSearchWord(word){
 }
 
 function generateClearButton(){
+  // this function creates the clear button at the clear search controls
   $('.clear-search-controls').html('<button class="clear-search js-clear-search">Clear Search</button>');
 }
 
 function deleteClearButton(){
+  // this function removes the clear button
   $('.clear-search-controls').html('');
+}
+
+function editName(id,name){
+  // this function edits the name inside of the STORE
+  const item = STORE.items.find(item => item.id === id);
+  item.name = name;
+}
+
+function generateEditMode(item){
+  return `
+  <form class="edit-item-form">
+    <input class="js-edit-item" value=${item.name}></input>
+  </form>`;
 }
 
 function renderShoppingList() {
@@ -165,6 +180,30 @@ function handleClearSearchClicked(){
 
 }
 
+function handleItemOnFocus(){
+  // this function will be responsible for when users are focused on an item
+  $('.js-shopping-list').on('focus','.shopping-item',function(e){
+    const id = getItemIdFromElement(e.currentTarget);
+    const item = STORE.items.find(item => item.id === id);
+    const form = generateEditMode(item);
+    $(e.currentTarget).replaceWith(form);
+    console.log(e.currentTarget);
+    let strLength = $('.js-edit-item').val().length * 2;
+    $('.js-edit-item').focus();
+    $('.js-edit-item')[0].setSelectionRange(strLength, strLength);
+  });
+}
+
+function handleEditItemSubmit(){
+  $('.js-shopping-list').on('submit','.edit-item-form',function(e){
+    e.preventDefault();
+    const input = $('.js-edit-item').val();
+    const id = getItemIdFromElement(e.currentTarget);
+    editName(id,input);
+    renderShoppingList();
+  });
+}
+
 // this function will be our callback when the page loads. it's responsible for
 // initially rendering the shopping list, and activating our individual functions
 // that handle new item submission and user clicks on the "check" and "delete" buttons
@@ -177,6 +216,8 @@ function handleShoppingList() {
   handleToggleHideFIlter();
   handleSearchClicked();
   handleClearSearchClicked();
+  handleItemOnFocus();
+  handleEditItemSubmit();
 }
 
 // when the page loads, call `handleShoppingList`
