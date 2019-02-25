@@ -73,8 +73,12 @@ function assignSearchWord(word){
   STORE.searchWord = word;
 }
 
-function toggleClearSearchDisplay(){
-  $('.js-clear-search').toggle();
+function generateClearButton(){
+  $('.clear-search-controls').html('<button class="clear-search js-clear-search">Clear Search</button>');
+}
+
+function deleteClearButton(){
+  $('.clear-search-controls').html('');
 }
 
 function renderShoppingList() {
@@ -147,15 +151,15 @@ function handleSearchClicked(){
     assignSearchWord(input.val());
     input.val('');
     renderShoppingList();
-    toggleClearSearchDisplay();
-  })
+    generateClearButton();
+  });
 }
 
 function handleClearSearchClicked(){
   // this function will be responsible for when users click on the clear button to clear the search results and display all of the list again
-  $('.js-search-clear').on('click',function(){
+  $('.clear-search-controls').on('click','.js-clear-search',function(){
     STORE.searchWord = false;
-    toggleClearSearchDisplay();
+    deleteClearButton();
     renderShoppingList();
   });
 
