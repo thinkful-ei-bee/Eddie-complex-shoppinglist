@@ -20,14 +20,15 @@
           <input type="checkbox" id="hide-completed-toggle" class="js-hide-completed-toggle" />
           <label for="hide-completed-toggle">Hide Completed</label>
         </div>
+        <form id="js-search-form">
+          <label for="search-entry">Search List:</label>
+          <input type="text" name="search-entry" class="js-shopping-list-search">
+          <button type="submit">Search</button>
+        </form>
         <ul class="shopping-list js-shopping-list">
         </ul>
     </div>
-    <form id="search-controls" class="js-search-controls">
-      <label for="search-entry">Search List:</label>
-      <input type="text" name="search-entry" class="js-shopping-list-search">
-      <button type="submit">Search</button>
-    </form>
+    
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cuid/1.3.8/browser-cuid.min.js"></script>
     <script src="//code.jquery.com/jquery.min.js"></script>
     <script type="text/javascript" src="index.js"></script>

@@ -17,6 +17,7 @@ const STORE = {
     {id: cuid(), name: 'bread', checked: false}
   ],
   hideCompleted: false,
+  searchWord: false,
 };
 
 function generateItemHTML(item){
@@ -67,6 +68,11 @@ function deleteItemFromList(id){
   STORE.splice(index,1);
 }
 
+function assignSearchWord(word){
+  // this function assigns STORE's search word to the given word
+  STORE.searchWord = word;
+}
+
 function renderShoppingList() {
   // this function will be responsible for rendering the shopping list in
   // the DOM
@@ -75,6 +81,10 @@ function renderShoppingList() {
   if (STORE.hideCompleted){
     filteredItems = filteredItems.filter(item => !item.checked);
   } 
+  if (STORE.searchWord){
+    console.log('FILTERING>>>');
+    filteredItems = filteredItems.filter(item => item.name.includes(STORE.searchWord));
+  }
   const htmlString = generateItemsHTML(filteredItems);
   $('.js-shopping-list').html(htmlString);
 
@@ -128,7 +138,14 @@ function handleToggleHideFIlter(){
 
 function handleSearchClicked(){
   // this function will be responsible for when users click on the search button to show the items the contain the inputed word
-  
+  $('#js-search-form').on('submit',function(e){
+    e.preventDefault();
+    const input = $('.js-shopping-list-search');
+    assignSearchWord(input.val());
+    input.val('');
+    renderShoppingList();
+    STORE.searchWord = false;
+  })
 }
 
 // this function will be our callback when the page loads. it's responsible for
