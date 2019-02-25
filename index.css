@@ -49,3 +49,7 @@ button:hover {
 .shopping-item__checked {
   text-decoration: line-through;
 }
+
+.clear-search{
+  display: none;
+}

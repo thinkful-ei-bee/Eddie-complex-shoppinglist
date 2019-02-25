@@ -73,6 +73,10 @@ function assignSearchWord(word){
   STORE.searchWord = word;
 }
 
+function toggleClearSearchDisplay(){
+  $('.js-clear-search').toggle();
+}
+
 function renderShoppingList() {
   // this function will be responsible for rendering the shopping list in
   // the DOM
@@ -82,7 +86,6 @@ function renderShoppingList() {
     filteredItems = filteredItems.filter(item => !item.checked);
   } 
   if (STORE.searchWord){
-    console.log('FILTERING>>>');
     filteredItems = filteredItems.filter(item => item.name.includes(STORE.searchWord));
   }
   const htmlString = generateItemsHTML(filteredItems);
@@ -144,8 +147,18 @@ function handleSearchClicked(){
     assignSearchWord(input.val());
     input.val('');
     renderShoppingList();
-    STORE.searchWord = false;
+    toggleClearSearchDisplay();
   })
+}
+
+function handleClearSearchClicked(){
+  // this function will be responsible for when users click on the clear button to clear the search results and display all of the list again
+  $('.js-search-clear').on('click',function(){
+    STORE.searchWord = false;
+    toggleClearSearchDisplay();
+    renderShoppingList();
+  });
+
 }
 
 // this function will be our callback when the page loads. it's responsible for
@@ -159,6 +172,7 @@ function handleShoppingList() {
   handleDeleteItemClicked();
   handleToggleHideFIlter();
   handleSearchClicked();
+  handleClearSearchClicked();
 }
 
 // when the page loads, call `handleShoppingList`
