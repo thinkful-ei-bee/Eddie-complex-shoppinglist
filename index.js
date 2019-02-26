@@ -11,44 +11,67 @@
 // we're pre-adding items to the shopping list so there's
 // something to see when the page first loads.
 const STORE = {
-  items: [{id: cuid(), name: 'apples', checked: false},
-    {id: cuid(), name: 'oranges', checked: false},
-    {id: cuid(), name: 'milk', checked: true},
-    {id: cuid(), name: 'bread', checked: false}
+  items: [{id: cuid(), name: 'apples', checked: false, isEditing: false},
+    {id: cuid(), name: 'oranges', checked: false, isEditing: false},
+    {id: cuid(), name: 'milk', checked: true, isEditing: false},
+    {id: cuid(), name: 'bread', checked: false, isEditing: false}
   ],
   hideCompleted: false,
   searchWord: false,
 };
 
+/********************* Generate Functions **************************/
+
 function generateItemHTML(item){
+  const checkedClass = item.checked ? 'shopping-item__checked' : '';
+  const checkButtonName = item.checked ? 'uncheck' : 'check';
+  let itemHTML =  `
+    <span class="shopping-item ${checkedClass}">${item.name}</span> 
+    <div class="shopping-item-controls"> 
+      <button class="shopping-item-toggle js-item-toggle"> <span class="button-label">${checkButtonName}</span> </button>
+      <button class="shopping-item-edit js-toggle-edit"> <span class="button-label">edit</span> </button> 
+      <button class="shopping-item-delete js-item-delete"> <span class="button-label">delete</span> </button> 
+    </div> `;
+
+  if (item.isEditing){
+    itemHTML = `
+    <form id="js-edit-form">
+      <input type="text" id="name" class="js-updated-name shopping-item" name="name" value="${item.name}">
+      <div class="shopping-item-controls">
+      <button type="button"class="shopping-item-cancel-edit js-toggle-edit">cancel</button>
+      <button type="submit" class="shopping-item-save-edit js-save-edit">save</button>
+      </div>
+    </form>`;
+  }
   return `
-  <li data-item-id="${item.id}"> <button class="shopping-item ${item.checked ? 'shopping-item__checked' : ''}">${item.name}</button> <div class="shopping-item-controls"> <button class="shopping-item-toggle js-item-toggle"> <span class="button-label">check</span> </button> <button class="shopping-item-delete js-item-delete"> <span class="button-label">delete</span> </button> </div> </li>
-  `;
+  <li class="js-item-element" data-item-id="${item.id}"> 
+    ${itemHTML}
+  </li>`;
 }
 
-function generateItemsHTML(arr){
-  // this function will generate all of the STORE's items into the proper html format and combining them into one string
+function generateItemsHTMLString(arr){
+  // this function will generate all of the STORE's items into the proper html format 
+  // and combine them into one string
   const htmlArr = arr.map(generateItemHTML);
   return htmlArr.join('');
 }
 
 function generateItem(item){
   // this function will create an item object with the associated attributes
-  return {id: cuid(), name: item, checked: false};
+  return {id: cuid(), name: item, checked: false, isEditing: false};
 }
 
-function addItemToShoppingList(item){
-  // this function will add an item to the STORE's items 
-  STORE.items.push(generateItem(item));
+function generateClearButton(){
+  // this function creates the clear button at the clear search controls
+  //$('.clear-search-controls').html('<button class="clear-search js-clear-search">Clear Search</button>');
+  let clearButtonHTML = '<button class="clear-search js-clear-search">Clear Search</button>';
+  if (!STORE.searchWord){
+    clearButtonHTML = '';
+  }
+  return clearButtonHTML;
 }
 
-function getItemIdFromElement(element){
-  // this function will find the id of the provide element assuming the structure is the same as the generateIteHTML function
-  console.log('getItemIdFromElement ran');
-  return $(element)
-    .closest('li')
-    .data('item-id');
-}
+/********************* Toggle Functions **************************/
 
 function toggleCheckedForListItem(id){
   // this function will toggle the specific item's check attribute of the given id
@@ -59,6 +82,19 @@ function toggleCheckedForListItem(id){
 function toggleHideFilter(){
   // this function will toggle the STORE's hideCompleted attribute
   STORE.hideCompleted = !STORE.hideCompleted;
+}
+
+function toggleEditMode(id){
+  STORE.items.map(function(item){
+    item.isEditing = (item.id === id ? !item.isEditing : false)
+  });
+}
+
+/********************* STORE Altering Functions **************************/
+
+function addItemToShoppingList(item){
+  // this function will add an item to the STORE's items 
+  STORE.items.unshift(generateItem(item));
 }
 
 function deleteItemFromList(id){
@@ -73,28 +109,22 @@ function assignSearchWord(word){
   STORE.searchWord = word;
 }
 
-function generateClearButton(){
-  // this function creates the clear button at the clear search controls
-  $('.clear-search-controls').html('<button class="clear-search js-clear-search">Clear Search</button>');
-}
-
-function deleteClearButton(){
-  // this function removes the clear button
-  $('.clear-search-controls').html('');
-}
-
 function editName(id,name){
   // this function edits the name inside of the STORE
   const item = STORE.items.find(item => item.id === id);
   item.name = name;
 }
 
-function generateEditMode(item){
-  return `
-  <form class="edit-item-form">
-    <input class="js-edit-item" value=${item.name}></input>
-  </form>`;
+function getItemIdFromElement(element){
+  // this function will find the id of the provide element assuming the structure is 
+  // the same as the generateIteHTML function
+  console.log('getItemIdFromElement ran');
+  return $(element)
+    .closest('li')
+    .data('item-id');
 }
+
+/********************* Render Function **************************/
 
 function renderShoppingList() {
   // this function will be responsible for rendering the shopping list in
@@ -107,11 +137,22 @@ function renderShoppingList() {
   if (STORE.searchWord){
     filteredItems = filteredItems.filter(item => item.name.includes(STORE.searchWord));
   }
-  const htmlString = generateItemsHTML(filteredItems);
+  const htmlString = generateItemsHTMLString(filteredItems);
   $('.js-shopping-list').html(htmlString);
 
 }
 
+function renderClearButton(){
+  const clearButtonHTML = generateClearButton();
+  $('.clear-search-controls').html(clearButtonHTML);
+}
+
+function renderAll(){
+  renderShoppingList();
+  renderClearButton();
+}
+
+/********************* Handle Functions **************************/
 
 function handleNewItemSubmit() {
   // this function will be responsible for when users add a new shopping list item
@@ -126,7 +167,6 @@ function handleNewItemSubmit() {
   });
 }
 
-
 function handleItemCheckClicked() {
   // this function will be responsible for when users click the "check" button on
   // a shopping list item.
@@ -137,7 +177,6 @@ function handleItemCheckClicked() {
     renderShoppingList();
   });
 }
-
 
 function handleDeleteItemClicked() {
   // this function will be responsible for when users want to delete a shopping list
@@ -159,47 +198,51 @@ function handleToggleHideFIlter(){
 }
 
 function handleSearchClicked(){
-  // this function will be responsible for when users click on the search button to show the items the contain the inputed word
+  // this function will be responsible for when users click on the search button to show 
+  // the items the contain the inputed word
   $('#js-search-form').on('submit',function(e){
     e.preventDefault();
     const input = $('.js-shopping-list-search');
     assignSearchWord(input.val());
     input.val('');
-    renderShoppingList();
-    generateClearButton();
+    renderAll();
   });
 }
 
 function handleClearSearchClicked(){
-  // this function will be responsible for when users click on the clear button to clear the search results and display all of the list again
+  // this function will be responsible for when users click on the clear button to clear 
+  // the search results and display all of the list again
   $('.clear-search-controls').on('click','.js-clear-search',function(){
     STORE.searchWord = false;
-    deleteClearButton();
-    renderShoppingList();
+    renderAll();
   });
 
 }
 
-function handleItemOnFocus(){
+function handleToggleItemEdit(){
   // this function will be responsible for when users are focused on an item
-  $('.js-shopping-list').on('focus','.shopping-item',function(e){
+  $('.js-shopping-list').on('click','.js-toggle-edit',function(e){
     const id = getItemIdFromElement(e.currentTarget);
     const item = STORE.items.find(item => item.id === id);
-    const form = generateEditMode(item);
-    $(e.currentTarget).replaceWith(form);
-    console.log(e.currentTarget);
-    let strLength = $('.js-edit-item').val().length * 2;
-    $('.js-edit-item').focus();
-    $('.js-edit-item')[0].setSelectionRange(strLength, strLength);
+    toggleEditMode(id);
+    renderShoppingList();
+    if (item.isEditing){
+      // Logic to have focus at the end of the value inside of the input
+      let strLength = $('#name').val().length * 2;
+      $('#name').focus();
+      $('#name')[0].setSelectionRange(strLength, strLength);
+    }
   });
 }
 
 function handleEditItemSubmit(){
-  $('.js-shopping-list').on('submit','.edit-item-form',function(e){
+  // this function will be responsible for when users submit a change to an item's name
+  $('.js-shopping-list').on('submit','#js-edit-form',function(e){
     e.preventDefault();
-    const input = $('.js-edit-item').val();
+    const input = $('#name').val();
     const id = getItemIdFromElement(e.currentTarget);
     editName(id,input);
+    toggleEditMode(id);
     renderShoppingList();
   });
 }
@@ -216,7 +259,7 @@ function handleShoppingList() {
   handleToggleHideFIlter();
   handleSearchClicked();
   handleClearSearchClicked();
-  handleItemOnFocus();
+  handleToggleItemEdit();
   handleEditItemSubmit();
 }
 
